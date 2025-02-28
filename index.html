@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অংক করো</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .operation-selector {
+            margin: 1rem 0;
+        }
+
+        .operation-btn {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .operation-btn.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .question {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: #333;
+        }
+
+        input {
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            width: 150px;
+            margin: 1rem 0;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            font-size: 1.1rem;
+            padding: 0.5rem 1.5rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .timer {
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .stats {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .message {
+            margin-top: 1rem;
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .error {
+            animation: shake 0.3s;
+            border-color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="operation-selector">
+            <button class="operation-btn" data-operation="add">যোগ</button>
+            <button class="operation-btn" data-operation="subtract">বিয়োগ</button>
+            <button class="operation-btn" data-operation="multiply">গুণ</button>
+            <button class="operation-btn" data-operation="divide">ভাগ</button>
+        </div>
+        <div class="stats">
+            <span id="score">স্কোর: 0</span>
+        </div>
+        <div class="timer">
+            <div class="timer-progress" id="timer"></div>
+        </div>
+        <div class="question" id="question"></div>
+        <input type="number" id="answer" placeholder="উত্তর লিখুন">
+        <button onclick="checkAnswer()">যাচাই করুন</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        let currentOperation = 'add';
+        let score = 0;
+        let timePerQuestion = 50;
+        let timerId;
+        let num1, num2;
+
+        // Operation selection
+        document.querySelectorAll('.operation-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.operation-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                currentOperation = btn.dataset.operation;
+                resetGame();
+            });
+        });
+
+        function calculateTime() {
+            const baseTime = 50;
+            const level = Math.floor(score / 10);
+            timePerQuestion = Math.max(baseTime - (level * 5), 10);
+            return timePerQuestion * 1000;
+        }
+
+        function startTimer() {
+            const timerElement = document.getElementById('timer');
+            let timeLeft = calculateTime();
+            const startTime = Date.now();
+            
+            timerId = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = timeLeft - elapsed;
+                
+                if (remaining <= 0) {
+                    clearInterval(timerId);
+                    showMessage("টাইম শেষ! নতুন সমস্যা");
+                    generateNewProblem();
+                }
+                
+                timerElement.style.width = `${(remaining / timeLeft) * 100}%`;
+            }, 50);
+        }
+
+        function generateNewProblem() {
+            clearInterval(timerId);
+            
+            // Generate numbers based on operation
+            switch(currentOperation) {
+                case 'subtract':
+                    num1 = Math.floor(Math.random() * 100) + 50;
+                    num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+                    break;
+                case 'divide':
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    num1 = num2 * (Math.floor(Math.random() * 10) + 1);
+                    break;
+                default:
+                    num1 = Math.floor(Math.random() * 100) + 1;
+                    num2 = Math.floor(Math.random() * 100) + 1;
+            }
+
+            const operator = {
+                add: '+',
+                subtract: '-',
+                multiply: '×',
+                divide: '÷'
+            }[currentOperation];
+
+            document.getElementById('question').textContent = `${num1} ${operator} ${num2} = ?`;
+            document.getElementById('answer').value = '';
+            document.getElementById('message').textContent = '';
+            document.getElementById('answer').classList.remove('error');
+            document.getElementById('answer').focus();
+            startTimer();
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            let correctAnswer;
+            
+            switch(currentOperation) {
+                case 'add': correctAnswer = num1 + num2; break;
+                case 'subtract': correctAnswer = num1 - num2; break;
+                case 'multiply': correctAnswer = num1 * num2; break;
+                case 'divide': correctAnswer = num1 / num2; break;
+            }
+
+            if (isNaN(userAnswer)) {
+                showMessage("দয়া করে একটি সংখ্যা লিখুন!");
+                return;
+            }
+
+            if (userAnswer === correctAnswer) {
+                score++;
+                document.getElementById('score').textContent = `স্কোর: ${score}`;
+                generateNewProblem();
+            } else {
+                showMessage("ভুল উত্তর! আবার চেষ্টা করুন");
+                document.getElementById('answer').value = '';
+                document.getElementById('answer').focus();
+            }
+        }
+
+        function showMessage(msg) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = msg;
+            document.getElementById('answer').classList.add('error');
+        }
+
+        function resetGame() {
+            score = 0;
+            document.getElementById('score').textContent = `স্কোর: 0`;
+            generateNewProblem();
+        }
+
+        // Enter key support
+        document.getElementById('answer').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // Initialize game
+        document.querySelector('[data-operation="add"]').classList.add('selected');
+        generateNewProblem();
+    </script>
+</body>
+</html>
