@@ -150,7 +150,7 @@
         });
 
         function calculateTime() {
-            const baseTime = 50;
+            const baseTime = 120;
             const level = Math.floor(score / 10);
             timePerQuestion = Math.max(baseTime - (level * 5), 10);
             return timePerQuestion * 1000;
