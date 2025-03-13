@@ -135,7 +135,7 @@
     <script>
         let currentOperation = 'add';
         let score = 0;
-        let timePerQuestion = 120;
+        let timePerQuestion = 70;
         let timerId;
         let num1, num2;
 
@@ -150,7 +150,7 @@
         });
 
         function calculateTime() {
-            const baseTime = 120;
+            const baseTime = 70;
             const level = Math.floor(score / 10);
             timePerQuestion = Math.max(baseTime - (level * 5), 10);
             return timePerQuestion * 1000;
